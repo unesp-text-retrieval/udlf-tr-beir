@@ -1,0 +1,32 @@
+ # UNSUPERVISED DISTANCE LEARNING METHODS FRAMEWORK #
+
+
+ - GENERAL INFORMATION -
+ --------------------------------------
+ Task:             UDL
+ Method:           CPRR
+ Dataset Size:     5482
+ Image List File:  /Users/luis.venezian/Documents/Mestrado/Github/udlf-tr-beir/datasets/beir/scifact/lists.txt
+ Input File:       /Users/luis.venezian/Documents/Mestrado/Github/udlf-tr-beir/datasets/beir/scifact/ranked_list.txt
+ Input Format:     RK STR
+ Output File:      /Users/luis.venezian/Documents/Mestrado/Github/udlf-tr-beir/datasets/beir/scifact/udlf
+ Output Format:    RK STR
+ --------------------------------------
+
+
+ - METHOD PARAMETERS -
+ --------------------------------------
+ PARAM_CPRR_K = 3
+ PARAM_CPRR_L = 100
+ PARAM_CPRR_T = 2
+ --------------------------------------
+
+
+ - EVALUATION RESULTS -
+ --------------------------------------
+ * Efficiency:
+	 Total Time of the Algorithm Execution: 0.0352 s
+
+ --------------------------------------
+
+ Log generated at 2025/4/6 22:41:54
