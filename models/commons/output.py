@@ -3,9 +3,9 @@ import time
 
 
 class CommonOutput:
-    @property
-    def dataframe(self):
+    def dataframe(self, method: str = None):
         # Flatten the nested dictionaries
+        environment = f"{self.dataset.dataset_name}+{self.name}{'+' + method if method else ''}"
         metrics = ['ndcg', 'map', 'recall', 'precision']
         rows = []
         for metric in metrics:
@@ -14,7 +14,7 @@ class CommonOutput:
                     'Metric': metric.upper(),
                     'K': key.split('@')[1],  # Extract the K value from the key
                     'Value': value,
-                    'Environment': f"{self.dataset_name}+{self.name}"  # Combine dataset name and model name
+                    'Environment': environment
                 })
 
         # Create a DataFrame from the rows

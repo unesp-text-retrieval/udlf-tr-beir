@@ -1,5 +1,6 @@
 import logging
 from beir import LoggingHandler
+from models.commons.output import CommonOutput
 from udl.udlf import UDLF
 from local_datasets.beir_datasets import BEIR
 
@@ -11,28 +12,26 @@ logging.basicConfig(
 )
 
 from beir.retrieval.evaluation import EvaluateRetrieval
-from beir.retrieval.search.lexical import BM25Search as BM25
+from beir.retrieval import models
+from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
 
 
-class BM25Model(UDLF):
-    def __init__(self, dataset: BEIR, k_values: list, initialize: bool = True):
+class SBERTModel(UDLF):
+    def __init__(self, dataset: BEIR, k_values: list):
         self.dataset = dataset
-        self.name = "BM25"
+        self.name = "sbert"
         self.k_values = k_values
         super().__init__(
             beir_local_datasets_path=self.dataset.out_dir + "/",
             dataset_name=self.dataset.dataset_name
         )
         self.ndcg, self._map, self.recall, self.precision = None, None, None, None
-        self.model = BM25(
-            index_name=self.dataset.dataset_name,
-            hostname="localhost",
-            initialize=initialize,
-            number_of_shards=4,
+        self.model = DRES(
+            models.SentenceBERT("all-MiniLM-L6-v2"),
+            batch_size=512
         )
         self.retriever = EvaluateRetrieval(self.model, k_values=self.k_values)
         self.results = None
-
 
     @property
     def data(self):
