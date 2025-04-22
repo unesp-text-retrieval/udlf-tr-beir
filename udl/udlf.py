@@ -4,6 +4,7 @@ from udl.input_type import InputType
 from udl.helpers.config import UDLFConfigHelper
 from abc import ABC, abstractmethod
 from models.commons.output import CommonOutput
+from typing import List
 
 class UDLFConfig(ABC):
     @abstractmethod
@@ -43,7 +44,7 @@ class UDLF(CommonOutput):
         size = self.write_udlf_lists_file()
 
         # Initiate config by using InputType class
-        self.udlf_config = InputType(self.config_ini_path)
+        self.udlf_config = InputType()
 
         params = UDLFConfigHelper.create_config(
             size=size,
@@ -56,6 +57,9 @@ class UDLF(CommonOutput):
             print("Setting parameter", key, "to", value)
             self.udlf_config.set_param(key, value)
 
+        #
+        # Execute UDLF
+        #
         self.response = udlf.run(
             self.udlf_config,
             get_output = True
@@ -90,18 +94,18 @@ class UDLF(CommonOutput):
         Returns integer as dataset size.
         """
         with open(self.ranked_list_path, "w") as f:
-            # log insert
-            print(f"Writing ranked list file to {self.ranked_list_path}")
             sorted_query_ids = sorted(self.results.keys(), key=lambda x: str(x))
             for i, query_id in enumerate(sorted_query_ids):
                 retrieved_documents = self.results[query_id]
 
-                docs = [doc_id for doc_id, score in sorted(retrieved_documents.items(), key=lambda x: x[1], reverse=True)]
+                docs = self.ensure_query_id_first(
+                    query_id=query_id,
+                    docs=[
+                        doc_id for doc_id, score in
+                        sorted(retrieved_documents.items(), key=lambda x: x[1], reverse=True)
+                    ]
+                )
 
-                # if query_id is not docs[0] then add it into the beginning
-                first_doc = docs[0]
-                if query_id != first_doc:
-                    docs = [query_id] + docs
 
                 new_line = " ".join(docs)
                 if i < len(sorted_query_ids) - 1:
@@ -110,7 +114,25 @@ class UDLF(CommonOutput):
                     f.write(new_line)
 
             f.close()
-                    
+
+    def ensure_query_id_first(self, query_id: str, docs: List) -> List:
+        """
+        Ensures that the query_id is the first item in the list of docs.
+        """
+        query_id_indexes = [i for i, d in enumerate(docs) if d == query_id]
+
+        if len(query_id_indexes) > 1:
+            raise ValueError(f"Query ID {query_id} appears multiple times in the ranked list.")
+        elif len(query_id_indexes) == 0:
+            docs = [query_id] + docs
+        else:
+            query_id_index = query_id_indexes[0]
+            if query_id_index != 0:
+                docs.pop(query_id_index)
+                docs = [query_id] + docs
+
+        return docs
+
     def write_udlf_lists_file(self):
         print(f"Writing lists file to {self.lists_path}")
         with open(self.lists_path, "w") as f:
@@ -133,6 +155,6 @@ class UDLF(CommonOutput):
         self.ndcg, self._map, self.recall, self.precision = self.retriever.evaluate(
             self.dataset.qrels,
             self.results if external_results is None else external_results,
-            self.retriever.k_values,
-            ignore_identical_ids=False
+            self.retriever.k_values
+            #ignore_identical_ids=False
         )
